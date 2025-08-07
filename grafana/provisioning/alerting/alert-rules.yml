@@ -1,0 +1,29 @@
+# define an alert for failure logs
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: Tolgee Failure Alerts
+    folder: Alerts
+    rules:
+      - uid: tolgee_db_failure
+        title: PostgreSQL Failure Detected
+        condition: A
+        data:
+          - refId: A
+            datasourceUid: Loki
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              editorMode: code
+              expr: '{container_name=~"tolgee-db-1|tolgee-app-1"} |~ "ERROR|FATAL|PANIC|PSQLException|SQLException"'
+              queryType: instant
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          summary: "Critical error in Tolgee or PostgreSQL"
+          description: "Detected errors in logs: {{ $labels.log }}"
+        labels:
+          severity: critical
+        notifications:
+          - uid: email_notifier
