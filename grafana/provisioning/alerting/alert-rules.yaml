@@ -3,6 +3,7 @@ groups:
   - orgId: 1
     name: Tolgee Failure Alerts
     folder: Alerts
+    interval: "1m"
     rules:
       - uid: tolgee_db_failure
         title: PostgreSQL Failure Detected
