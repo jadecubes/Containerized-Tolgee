@@ -1,8 +1,0 @@
-tolgee:
-  postgres-autostart:
-    enabled: false
-spring:
-  datasource:
-    url: jdbc:postgresql://db:5432/tolgee
-    username: tolgee_user
-    password: tolgee_password
