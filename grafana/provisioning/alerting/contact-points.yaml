@@ -1,0 +1,10 @@
+apiVersion: 1
+contactPoints:
+  - orgId: 1
+    name: Email Alerts
+    receivers:
+      - uid: email_notifier
+        type: email
+        settings:
+          addresses: debra321@hotmail.com;jadecubes@gmail.com
+          singleEmail: false

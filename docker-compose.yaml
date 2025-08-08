@@ -1,0 +1,105 @@
+version: '3.9'
+
+services:
+  app:
+    image: tolgee/tolgee:latest
+    volumes:
+      - ./data:/data
+      - ./config/tolgee-config.yaml:/config.yaml
+    ports:
+      - '8089:8080'
+    environment:
+      spring.config.additional-location: file:///config.yaml
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - tolgee-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        tag: "tolgee"
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: tolgee
+      POSTGRES_USER: tolgee_user
+      POSTGRES_PASSWORD: tolgee_password
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    ports:
+      - '25432:5432'
+    networks:
+      - tolgee-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tolgee_user -d tolgee"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        tag: "postgres"
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki:/loki
+      - ./config/loki-config.yaml:/etc/loki/loki.yaml
+    command: -config.file=/etc/loki/loki.yaml
+    networks:
+      - tolgee-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        tag: "loki"
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - ./config/promtail-config.yaml:/etc/promtail/config.yaml
+      - ./logs:/var/log
+    command: -config.file=/etc/promtail/config.yaml
+    networks:
+      - tolgee-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        tag: "promtail"
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3030:3000"
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_SMTP_ENABLED=true
+      - GF_SMTP_HOST=smtp.gmail.com:587
+      - GF_SMTP_USER=your-email@gmail.com
+      - GF_SMTP_PASSWORD=your-app-specific-password
+      - GF_SMTP_FROM_ADDRESS=your-email@gmail.com
+      - GF_SMTP_FROM_NAME=Tolgee Monitoring
+      - GF_PLUGINS_ALLOW_LOADING_INVALID_SIGNATURE=true
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/data:/var/lib/grafana
+    depends_on:
+      - loki
+    networks:
+      - tolgee-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        tag: "grafana"
+networks:
+  tolgee-network:
+    driver: bridge
