@@ -1,16 +1,60 @@
 server:
   http_listen_port: 9080
 clients:
-- url: http://loki:3100/loki/api/v1/push
+  - url: http://loki:3100/loki/api/v1/push
 scrape_configs:
-- job_name: tolgee
-  static_configs:
-  - targets:
-    - app
-    labels:
-      job: tolgee
-      __path__: /var/log/*.log
-  pipeline_stages:
-  - limit:
-      rate: 100
-      burst: 1000
+  - job_name: tolgee
+    static_configs:
+      - targets:
+          - app
+        labels:
+          job: tolgee
+          __path__: /var/log/tolgee*.log
+    pipeline_stages:
+      - limit:
+          rate: 100
+          burst: 1000
+  - job_name: postgres
+    static_configs:
+      - targets:
+          - db
+        labels:
+          job: postgres
+          __path__: /var/log/postgres*.log
+    pipeline_stages:
+      - limit:
+          rate: 100
+          burst: 1000
+  - job_name: loki
+    static_configs:
+      - targets:
+          - loki
+        labels:
+          job: loki
+          __path__: /var/log/loki*.log
+    pipeline_stages:
+      - limit:
+          rate: 100
+          burst: 1000
+  - job_name: promtail
+    static_configs:
+      - targets:
+          - promtail
+        labels:
+          job: promtail
+          __path__: /var/log/promtail*.log
+    pipeline_stages:
+      - limit:
+          rate: 100
+          burst: 1000
+  - job_name: grafana
+    static_configs:
+      - targets:
+          - grafana
+        labels:
+          job: grafana
+          __path__: /var/log/grafana*.log
+    pipeline_stages:
+      - limit:
+          rate: 100
+          burst: 1000
