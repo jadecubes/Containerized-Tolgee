@@ -1,0 +1,16 @@
+server:
+  http_listen_port: 9080
+clients:
+- url: http://loki:3100/loki/api/v1/push
+scrape_configs:
+- job_name: tolgee
+  static_configs:
+  - targets:
+    - app
+    labels:
+      job: tolgee
+      __path__: /var/log/*.log
+  pipeline_stages:
+  - limit:
+      rate: 100
+      burst: 1000
