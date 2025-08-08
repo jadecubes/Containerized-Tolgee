@@ -8,8 +8,8 @@ services:
       - ./config/tolgee-config.yaml:/config.yaml
     ports:
       - '8089:8080'
-    env_file:
-      - .env
+    environment:
+      spring.config.additional-location: file:///config.yaml
     depends_on:
       db:
         condition: service_healthy
