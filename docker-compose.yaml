@@ -8,6 +8,8 @@ services:
       - ./config/tolgee-config.yaml:/config.yaml
     ports:
       - '8089:8080'
+    env_file:
+      - .env.tolgee
     environment:
       spring.config.additional-location: file:///config.yaml
     depends_on:
@@ -52,6 +54,8 @@ services:
       - ./loki:/loki
       - ./config/loki-config.yaml:/etc/loki/loki.yaml
     command: -config.file=/etc/loki/loki.yaml
+    env_file:
+      - .env.grafana
     networks:
       - tolgee-network
     logging:
