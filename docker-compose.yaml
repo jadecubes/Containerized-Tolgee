@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   app:
     image: tolgee/tolgee:latest
@@ -23,6 +21,7 @@ services:
         max-size: "10m"
         max-file: "3"
         tag: "tolgee"
+
   db:
     image: postgres:13
     environment:
@@ -46,6 +45,27 @@ services:
         max-size: "10m"
         max-file: "3"
         tag: "postgres"
+
+  postgres-backup:
+    image: prodrigestivill/postgres-backup-local:15
+    depends_on:
+      - db
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_DB: tolgee
+      POSTGRES_USER: tolgee_user
+      POSTGRES_PASSWORD: tolgee_password
+      # Cron format: minute hour day month day_of_week
+      SCHEDULE: "0 2 * * *"
+      BACKUP_KEEP_DAYS: "7"
+      BACKUP_COMPRESSION: "gzip"
+      POSTGRES_EXTRA_OPTS: "-Fc"
+    volumes:
+      - ./backups:/backups
+    networks:
+      - tolgee-network
+    restart: unless-stopped
+
   loki:
     image: grafana/loki:latest
     ports:
@@ -62,12 +82,12 @@ services:
         max-size: "10m"
         max-file: "3"
         tag: "loki"
+
   promtail:
     image: grafana/promtail:latest
     volumes:
-      - ./config/promtail-config.yaml:/etc/promtail/config.yaml:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config/promtail-config.yaml:/etc/promtail/config.yaml
+      - ./logs:/var/log
     command: -config.file=/etc/promtail/config.yaml
     networks:
       - tolgee-network
@@ -77,6 +97,7 @@ services:
         max-size: "10m"
         max-file: "3"
         tag: "promtail"
+
   grafana:
     image: grafana/grafana:latest
     ports:
@@ -96,6 +117,7 @@ services:
         max-size: "10m"
         max-file: "3"
         tag: "grafana"
+
 networks:
   tolgee-network:
     driver: bridge
