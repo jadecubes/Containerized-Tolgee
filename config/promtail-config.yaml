@@ -2,11 +2,16 @@ server:
   http_listen_port: 9080
   grpc_listen_port: 0
 
-clients:
-  - url: http://loki:3100/loki/api/v1/push
-
 positions:
   filename: /tmp/positions.yaml
+
+# Global read limits (valid at top-level, not in a job)
+limits_config:
+  readline_rate: 100
+  readline_burst: 1000
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
 
 scrape_configs:
   - job_name: docker
@@ -14,17 +19,11 @@ scrape_configs:
       - host: unix:///var/run/docker.sock
         refresh_interval: 5s
     relabel_configs:
+      # Set container name label (nice to have)
       - source_labels: ['__meta_docker_container_name']
-        target_label: container_name
-      - source_labels: ['__meta_docker_container_label_com_docker_compose_service']
-        target_label: compose_service
-      - source_labels: ['__meta_docker_container_label_com_docker_compose_project']
-        target_label: compose_project
-      - source_labels: ['__meta_docker_container_log_stream']
-        target_label: stream
-      - source_labels: ['__meta_docker_container_label_com_docker_compose_config_hash']
-        target_label: tag
-        replacement: '$1'
-    limits_config:
-      readline_rate: 100
-      readline_burst: 1000
+        target_label: container
+        regex: '/(.*)'
+      # Route each discovered container to its JSON log file
+      - source_labels: ['__meta_docker_container_id']
+        target_label: __path__
+        replacement: /var/lib/docker/containers/$1/$1-json.log

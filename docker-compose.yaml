@@ -86,8 +86,9 @@ services:
   promtail:
     image: grafana/promtail:latest
     volumes:
-      - ./config/promtail-config.yaml:/etc/promtail/config.yaml
-      - ./logs:/var/log
+     - ./config/promtail-config.yaml:/etc/promtail/config.yaml
+     - /var/run/docker.sock:/var/run/docker.sock:ro
+     - /var/lib/docker/containers:/var/lib/docker/containers:ro
     command: -config.file=/etc/promtail/config.yaml
     networks:
       - tolgee-network

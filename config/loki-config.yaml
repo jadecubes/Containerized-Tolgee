@@ -1,8 +1,11 @@
 auth_enabled: false
+
 server:
   http_listen_port: 3100
+
 common:
   path_prefix: /loki
+  replication_factor: 1
   storage:
     filesystem:
       chunks_directory: /loki/chunks
@@ -10,6 +13,7 @@ common:
   ring:
     kvstore:
       store: inmemory
+
 schema_config:
   configs:
     - from: 2025-08-01
@@ -19,14 +23,30 @@ schema_config:
       index:
         prefix: index_
         period: 24h
+
 storage_config:
   tsdb_shipper:
     active_index_directory: /loki/index
     cache_location: /loki/cache
+
+ingester:                               
+  wal:
+    enabled: true
+    dir: /loki/wal
+  lifecycler:
+    ring:
+      kvstore:
+        store: inmemory
+      replication_factor: 1
+
 limits_config:
   allow_structured_metadata: false
+  max_streams_per_user: 0              
+  max_global_streams_per_user: 0
+
 table_manager:
   retention_period: 168h
+
 compactor:
   retention_enabled: true
   retention_delete_delay: 2h
